@@ -1,0 +1,60 @@
+# Dependencies and generated output at any depth.
+node_modules/
+dist/
+test-results/
+playwright-report/
+coverage/
+
+# Local environment files. Only a reviewed, secret-free example may be committed.
+.env
+.env.*
+!.env.example
+
+# Private keys, credential stores and conventional secret files/directories.
+*.pem
+*.key
+*.p12
+*.pfx
+*.keystore
+*.jks
+*.kdbx
+id_rsa
+id_dsa
+id_ecdsa
+id_ed25519
+secrets/
+credentials/
+secrets.*
+credentials.*
+service-account*.json
+service_account*.json
+
+# Temporary files, local caches and logs.
+tmp/
+temp/
+.cache/
+.vite/
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+*.log
+.DS_Store
+Thumbs.db
+
+# Project backups/snapshots, including copies accidentally placed inside this tree.
+backup/
+backups/
+snapshot/
+snapshots/
+*_backup_*
+*_snapshot_*
+backup-*/
+snapshot-*/
+*.bak
+*.backup
+*.snapshot
+
+# Unrelated legacy project with its own Git repository; do not nest it in BusWay.
+/test1/
