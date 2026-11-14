@@ -14,6 +14,7 @@ import adminAssignmentsRoutes from './routes/admin-assignments.js'
 import driverTripsRoutes from './routes/driver-trips.js'
 import adminReconciliationRoutes from './routes/admin-reconciliation.js'
 import adminGpsRoutes from './routes/admin-gps.js'
+import adminAuditRoutes from './routes/admin-audit.js'
 import driverVisibilityRoutes, { adminVisibilityRoutes } from './routes/driver-visibility.js'
 import internalGpsRoutes from './routes/internal-gps.js'
 
@@ -55,6 +56,7 @@ export async function buildApp({ config, pool, loggerStream }) {
   await app.register(driverVisibilityRoutes, { prefix: '/api/v1' })
   await app.register(adminReconciliationRoutes, { prefix: '/api/v1' })
   await app.register(adminGpsRoutes, { prefix: '/api/v1' })
+  await app.register(adminAuditRoutes, { prefix: '/api/v1' })
   await app.register(adminVisibilityRoutes, { prefix: '/api/v1' })
   await app.register(internalGpsRoutes)
 
