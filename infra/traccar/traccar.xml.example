@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- BusWay KG: example Traccar configuration. Copy to traccar.xml and replace placeholders. -->
+<!-- Do not commit real secrets. Traccar runs as an isolated GPS gateway (D-101, D-114). -->
+<entry key="database.driver">org.postgresql.Driver</entry>
+<entry key="database.url">jdbc:postgresql://127.0.0.1:5432/traccar</entry>
+<entry key="database.user">traccar</entry>
+<entry key="database.password">change-me</entry>
+<!-- Only the chosen device protocol port is exposed. -->
+<entry key="web.port">8082</entry>
+<entry key="web.address">127.0.0.1</entry>
+<!-- Disable auto-registration of unknown devices. -->
+<entry key="devices.autoRegistration">false</entry>
+<!-- Device commands disabled in MVP (D-122). -->
+<entry key="commands.queue">false</entry>
+<!-- Forwarding to Fastify internal ingest (D-101). -->
+<entry key="forward.url">http://127.0.0.1:3001/internal/v1/gps/positions</entry>
+<entry key="forward.header">X-Gateway-Secret</entry>

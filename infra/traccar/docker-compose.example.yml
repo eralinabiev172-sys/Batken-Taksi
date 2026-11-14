@@ -1,0 +1,21 @@
+# BusWay KG: isolated self-hosted Traccar (example only). Do not run without owner approval.
+# Binds to 127.0.0.1 only; never starts automatically; does not touch other projects.
+name: busway-traccar
+services:
+  traccar:
+    image: traccar/traccar:latest
+    container_name: busway-traccar
+    restart: "no"
+    ports:
+      - "127.0.0.1:8082:8082"
+      - "127.0.0.1:5023:5023"   # example device protocol port; change to the chosen protocol
+    volumes:
+      - ./traccar.xml:/opt/traccar/conf/traccar.xml:ro
+      - traccar_data:/opt/traccar/data
+      - traccar_logs:/opt/traccar/logs
+    mem_limit: 512m
+volumes:
+  traccar_data:
+    name: busway_traccar_data
+  traccar_logs:
+    name: busway_traccar_logs
