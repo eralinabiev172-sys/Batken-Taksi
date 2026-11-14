@@ -18,6 +18,8 @@ const SESSION_COOKIE = IS_PROD ? '__Host-session' : 'session'
 const CSRF_COOKIE = IS_PROD ? '__Host-csrf' : 'csrf'
 
 export function registerAuth(app) {
+  app.decorate('SESSION_COOKIE', SESSION_COOKIE)
+  app.decorate('CSRF_COOKIE', CSRF_COOKIE)
   app.decorate('resolveSession', async (token) => {
     if (typeof token !== 'string' || token.length === 0) return null
     const hash = hashToken(token)
