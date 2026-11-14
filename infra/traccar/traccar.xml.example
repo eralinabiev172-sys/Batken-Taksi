@@ -17,9 +17,15 @@
   <!-- Device commands disabled in MVP (D-122). -->
   <entry key="commands.queue">false</entry>
 
-  <!-- Forwarding to Fastify internal ingest (D-101). Type JSON, custom header carries the gateway secret. -->
-  <entry key="forward.enable">true</entry>
-  <entry key="forward.url">http://host.docker.internal:3001/internal/v1/gps/positions</entry>
+  <!-- Forwarding to Fastify (verified against a real Traccar 6.6 container, synthetic data):
+       - Traccar POSTs {"position":{...},"device":{...}}; position.id is always 0 at forward time,
+         so BusWay builds its dedupe key from deviceId + fixTime.
+       - forward.header is sent as an HTTP header exactly as written ("Name: value").
+       - The numeric Traccar deviceId must be registered in BusWay (gps_devices.traccar_device_id).
+       - Use the same secret as INTERNAL_GPS_SECRET. Never commit the real value. -->
+  <entry key="forward.url">http://host.docker.internal:3001/internal/v1/gps/traccar</entry>
   <entry key="forward.type">json</entry>
   <entry key="forward.header">X-Gateway-Secret: change-me-gateway-secret</entry>
-</properties>
+  <entry key="forward.retry.enable">true</entry>
+  <entry key="forward.retry.delay">500</entry>
+  <entry key="forward.retry.count">5</entry></properties>

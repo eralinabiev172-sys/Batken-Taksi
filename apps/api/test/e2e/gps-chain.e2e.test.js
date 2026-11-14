@@ -34,15 +34,16 @@ run('GPS chain: Traccar forward -> Fastify -> PostgreSQL -> grant -> WebSocket',
   const archivedTraccarId = traccarId + 1
   let admin, appPool, app, baseUrl, cookie, csrf
   const sockets = []
-  let positionSeq = 0
+  let fixClock = Date.now()
 
   const post = (url, payload, headers = {}) => app.inject({ method: 'POST', url, payload, headers })
   const driverPost = (url, payload) => app.inject({ method: 'POST', url, payload: payload ?? {}, headers: { cookie, 'x-csrf-token': csrf } })
   const driverDelete = (url) => app.inject({ method: 'DELETE', url, headers: { cookie, 'x-csrf-token': csrf } })
   const traccar = (positions, secret = SECRET) => post('/internal/v1/gps/traccar', positions, { 'x-gateway-secret': secret })
+  // Same envelope as real Traccar 6.6 forwards; position.id is always 0 there.
   const fix = (overrides = {}) => ({
-    id: ++positionSeq + 1000000 * (randomInt(1000) + 1), deviceId: traccarId, protocol: 'teltonika',
-    fixTime: new Date().toISOString(), latitude: 40.0, longitude: 70.0, speed: 10, course: 90, ...overrides,
+    position: { id: 0, deviceId: traccarId, protocol: 'osmand', fixTime: new Date(++fixClock).toISOString(), latitude: 40.0, longitude: 70.0, speed: 10, course: 90, ...overrides },
+    device: { id: traccarId, uniqueId: 'synthetic' },
   })
 
   async function openSocket() {
@@ -176,7 +177,7 @@ run('GPS chain: Traccar forward -> Fastify -> PostgreSQL -> grant -> WebSocket',
     const again = await traccar(one)
     expect(again.statusCode).toBe(200)
     expect(again.json().results[0].body.status).toBe('duplicate')
-    expect(await count('select count(*) n from gps_positions where source_position_id = $1', [String(one.id)])).toBe(1)
+    expect(await count('select count(*) n from gps_positions where source_position_id = $1', [`tc${traccarId}-${Date.parse(one.position.fixTime)}`])).toBe(1)
 
     const batch = [fix(), fix()]
     const first = await traccar(batch)

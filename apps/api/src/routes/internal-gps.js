@@ -7,6 +7,8 @@ async function ingestBusway(app, request, b) {
   if (lat < -90 || lat > 90 || lon < -180 || lon > 180) return { status: 400, code: 'GPS_REJECTED', message: 'GPS rejected' }
   const measuredAt = new Date(b.measuredAt)
   if (Number.isNaN(measuredAt.getTime())) return { status: 400, code: 'GPS_REJECTED', message: 'GPS rejected' }
+  // Clock-skew guard (SECURITY.md section 6): a fix dated in the future is not a real measurement.
+  if (measuredAt.getTime() - Date.now() > 60_000) return { status: 400, code: 'GPS_REJECTED', message: 'GPS rejected' }
   const { rows: devRows } = await app.db.query('select id, status from gps_devices where external_id = $1', [b.deviceExternalId])
   const device = devRows[0]
   if (!device || device.status !== 'active') return { status: 404, code: 'TRACKER_UNKNOWN', message: 'Tracker unknown' }
@@ -93,10 +95,10 @@ export default async function internalGpsRoutes(app) {
     }
     const payload = request.body
     const positions = Array.isArray(payload) ? payload : (payload && Array.isArray(payload.positions) ? payload.positions : [payload])
-    const { traccarPositionToBusway } = await import('../lib/traccar-adapter.js')
+    const { traccarPositionToBusway, unwrapTraccarItem } = await import('../lib/traccar-adapter.js')
     const converted = []
     for (const p of positions) {
-      const c = traccarPositionToBusway(p)
+      const c = traccarPositionToBusway(unwrapTraccarItem(p))
       if (!c) {
         reply.code(400).send({ error: { code: 'GPS_REJECTED', message: 'GPS rejected', requestId: request.id } })
         return

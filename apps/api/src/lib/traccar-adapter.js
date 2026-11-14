@@ -6,12 +6,16 @@ const KNOTS_TO_MPS = 0.5144444444444444
 
 export function traccarPositionToBusway(pos) {
   if (!pos || typeof pos !== 'object') return null
-  const gatewayPositionId = pos.id != null ? String(pos.id) : (pos.positionId != null ? String(pos.positionId) : null)
-  if (!gatewayPositionId) return null
   const traccarDeviceId = pos.deviceId != null ? String(pos.deviceId) : null
   if (!traccarDeviceId || !/^[1-9]\d{0,17}$/.test(traccarDeviceId)) return null
   const measuredAt = pos.fixTime || pos.deviceTime || pos.serverTime
   if (!measuredAt) return null
+  const measuredMs = Date.parse(measuredAt)
+  if (!Number.isFinite(measuredMs)) return null
+  // Traccar 6.6 forwards positions BEFORE they are stored, so position.id is always 0 and
+  // cannot be used for dedupe. A deterministic key from device + fix time makes a retried
+  // delivery of the same fix idempotent, while distinct fixes stay distinct.
+  const gatewayPositionId = `tc${traccarDeviceId}-${measuredMs}`
   const lat = Number(pos.latitude)
   const lon = Number(pos.longitude)
   if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null
@@ -24,7 +28,6 @@ export function traccarPositionToBusway(pos) {
     gatewayPositionId,
     traccarDeviceId,
     measuredAt,
-    sequence: pos.protocol != null ? `${pos.protocol}:${pos.id}` : String(pos.id),
     position: { latitude: lat, longitude: lon },
   }
   if (pos.serverTime) converted.receivedAt = pos.serverTime
@@ -34,11 +37,16 @@ export function traccarPositionToBusway(pos) {
   return converted
 }
 
+/** Traccar 6.6 forwards { position, device }; a bare position object is also accepted. */
+export function unwrapTraccarItem(item) {
+  return item && typeof item === 'object' && item.position && typeof item.position === 'object' ? item.position : item
+}
+
 export function traccarPayloadToBusway(payload) {
   const items = Array.isArray(payload) ? payload : [payload]
   const out = []
   for (const item of items) {
-    const converted = traccarPositionToBusway(item)
+    const converted = traccarPositionToBusway(unwrapTraccarItem(item))
     if (converted) out.push(converted)
   }
   return out
