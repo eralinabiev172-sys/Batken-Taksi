@@ -42,7 +42,17 @@ export function validateTestTargets(env) {
   // Not supplied by .env.example or automatically enabled by the test runner.
   // Set only in the shell for an explicitly authorised destructive test run.
   requireSafe(env.BUSWAY_ALLOW_DESTRUCTIVE_TESTS === 'busway_test')
-  if (env.BUSWAY_ALLOW_ISOLATED_TESTS === '1') requireSafe(env.BUSWAY_ISOLATED_TEST_CONTAINER === 'busway-test-postgres-iso')
+  if (env.BUSWAY_ALLOW_ISOLATED_TESTS === '1') {
+    requireSafe(env.BUSWAY_ISOLATED_TEST_CONTAINER === 'busway-test-postgres-iso')
+    requireSafe(env.BUSWAY_ISOLATED_TEST_PORT === ISOLATED_TEST_PORT)
+    // Cross-port consistency: working URLs must stay on 5432, test URLs on the isolated port.
+    for (const key of ['DATABASE_URL', 'MIGRATOR_DATABASE_URL']) {
+      requireSafe(new URL(env[key]).port === '5432', 'working-port')
+    }
+    for (const key of ['TEST_DATABASE_URL', 'TEST_MIGRATOR_DATABASE_URL']) {
+      requireSafe(new URL(env[key]).port === ISOLATED_TEST_PORT, 'test-port')
+    }
+  }
   parseTarget(env.DATABASE_URL, 'busway', 'busway_app', env)
   parseTarget(env.MIGRATOR_DATABASE_URL, 'busway', 'busway_migrator', env)
   const targets = {}
