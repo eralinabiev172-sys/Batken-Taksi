@@ -74,19 +74,19 @@ export default async function adminAssignmentsRoutes(app) {
   }))
 
   app.post('/admin/gps-devices', admin('devices.manage', async (request, reply) => {
-    const s = Type.Object({ externalId: Type.String({ minLength: 1 }), manufacturer: Type.Optional(Type.String()), model: Type.Optional(Type.String()), orderCode: Type.Optional(Type.String()), serialNumber: Type.Optional(Type.String()), protocol: Type.Optional(Type.String()), firmware: Type.Optional(Type.String()), authMode: Type.Optional(Type.String()) }, { additionalProperties: false })
+    const s = Type.Object({ externalId: Type.String({ minLength: 1 }), traccarDeviceId: Type.Optional(Type.Integer({ minimum: 1 })), manufacturer: Type.Optional(Type.String()), model: Type.Optional(Type.String()), orderCode: Type.Optional(Type.String()), serialNumber: Type.Optional(Type.String()), protocol: Type.Optional(Type.String()), firmware: Type.Optional(Type.String()), authMode: Type.Optional(Type.String()) }, { additionalProperties: false })
     if ([...Value.Errors(s, request.body)].length > 0) { bad(reply, request); return }
     const b = request.body
     const { rows } = await app.db.query(
-      `insert into gps_devices (external_id, manufacturer, model, order_code, serial_number, protocol, firmware, auth_mode) values ($1,$2,$3,$4,$5,$6,$7,coalesce($8,'per_device_secret')) returning *`,
-      [b.externalId, b.manufacturer ?? null, b.model ?? null, b.orderCode ?? null, b.serialNumber ?? null, b.protocol ?? null, b.firmware ?? null, b.authMode ?? null],
+      `insert into gps_devices (external_id, traccar_device_id, manufacturer, model, order_code, serial_number, protocol, firmware, auth_mode) values ($1,$2,$3,$4,$5,$6,$7,$8,coalesce($9,'per_device_secret')) returning *`,
+      [b.externalId, b.traccarDeviceId ?? null, b.manufacturer ?? null, b.model ?? null, b.orderCode ?? null, b.serialNumber ?? null, b.protocol ?? null, b.firmware ?? null, b.authMode ?? null],
     )
     reply.code(201).send({ gpsDevice: rows[0] })
   }))
 
   app.patch('/admin/gps-devices/:id', admin('devices.manage', async (request, reply) => {
     if (!isUuid(request.params.id)) { bad(reply, request); return }
-    const s = Type.Object({ manufacturer: Type.Optional(Type.Union([Type.String(), Type.Null()])), model: Type.Optional(Type.Union([Type.String(), Type.Null()])), firmware: Type.Optional(Type.Union([Type.String(), Type.Null()])), status: Type.Optional(Type.String()), authMode: Type.Optional(Type.String()) }, { additionalProperties: false })
+    const s = Type.Object({ manufacturer: Type.Optional(Type.Union([Type.String(), Type.Null()])), model: Type.Optional(Type.Union([Type.String(), Type.Null()])), firmware: Type.Optional(Type.Union([Type.String(), Type.Null()])), status: Type.Optional(Type.String()), authMode: Type.Optional(Type.String()), traccarDeviceId: Type.Optional(Type.Union([Type.Integer({ minimum: 1 }), Type.Null()])) }, { additionalProperties: false })
     if ([...Value.Errors(s, request.body)].length > 0) { bad(reply, request); return }
     const b = request.body
     const { rows } = await app.db.query(
@@ -96,9 +96,10 @@ export default async function adminAssignmentsRoutes(app) {
         firmware = case when $6::boolean then $7 else firmware end,
         status = coalesce($8, status),
         auth_mode = coalesce($9, auth_mode),
+        traccar_device_id = case when $10::boolean then $11 else traccar_device_id end,
         updated_at = now()
        where id = $1 returning *`,
-      [request.params.id, b.manufacturer !== undefined, b.manufacturer ?? null, b.model !== undefined, b.model ?? null, b.firmware !== undefined, b.firmware ?? null, b.status ?? null, b.authMode ?? null],
+      [request.params.id, b.manufacturer !== undefined, b.manufacturer ?? null, b.model !== undefined, b.model ?? null, b.firmware !== undefined, b.firmware ?? null, b.status ?? null, b.authMode ?? null, b.traccarDeviceId !== undefined, b.traccarDeviceId ?? null],
     )
     if (!rows[0]) { notFound(reply, request); return }
     reply.send({ gpsDevice: rows[0] })
