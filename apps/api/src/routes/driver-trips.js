@@ -8,14 +8,14 @@ function bad(reply, request) { reply.code(400).send({ error: { code: 'VALIDATION
 
 export default async function driverTripsRoutes(app) {
   app.get('/driver/trips/active', async (request, reply) => {
-    const session = await app.resolveSession(parseCookie(request.headers?.cookie))
+    const session = await app.resolveSession(parseCookie(request.headers?.cookie)[app.SESSION_COOKIE])
     if (!session) { reply.code(401).send({ error: { code: 'UNAUTHENTICATED', message: 'Authentication required', requestId: request.id } }); return }
     const { rows } = await app.db.query('select * from trips where driver_user_id = $1 and status = $2', [session.userId, 'active'])
     reply.send({ trip: rows[0] ?? null })
   })
 
   app.post('/driver/trips', async (request, reply) => {
-    const session = await app.resolveSession(parseCookie(request.headers?.cookie))
+    const session = await app.resolveSession(parseCookie(request.headers?.cookie)[app.SESSION_COOKIE])
     if (!session) { reply.code(401).send({ error: { code: 'UNAUTHENTICATED', message: 'Authentication required', requestId: request.id } }); return }
     if (!session.roles.includes('driver')) { reply.code(403).send({ error: { code: 'FORBIDDEN', message: 'Forbidden', requestId: request.id } }); return }
     const s = Type.Object({ routeDirectionId: Type.Optional(Type.String()), driverAssignmentId: Type.Optional(Type.String()) }, { additionalProperties: false })
@@ -47,7 +47,7 @@ export default async function driverTripsRoutes(app) {
   })
 
   app.post('/driver/trips/:id/complete', async (request, reply) => {
-    const session = await app.resolveSession(parseCookie(request.headers?.cookie))
+    const session = await app.resolveSession(parseCookie(request.headers?.cookie)[app.SESSION_COOKIE])
     if (!session) { reply.code(401).send({ error: { code: 'UNAUTHENTICATED', message: 'Authentication required', requestId: request.id } }); return }
     if (!session.roles.includes('driver')) { reply.code(403).send({ error: { code: 'FORBIDDEN', message: 'Forbidden', requestId: request.id } }); return }
     if (!isUuid(request.params.id)) { bad(reply, request); return }

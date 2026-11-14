@@ -36,7 +36,8 @@ async function ingestBusway(app, request, b) {
   const positionId = posRows[0].id
   const { rows: liveRows } = await app.db.query('select measured_at from vehicle_live_states where bus_id = $1', [busId])
   const current = liveRows[0]
-  if (!current || new Date(current.measured_at).getTime() < measuredAt.getTime()) {
+  const updatesLive = !current || new Date(current.measured_at).getTime() < measuredAt.getTime()
+  if (updatesLive) {
     await app.db.query(
       `insert into vehicle_live_states (bus_id, trip_id, gps_position_id, position, measured_at, received_at, freshness, speed_mps, heading_deg, updated_at)
        values ($1,$2,$3, ST_SetSRID(ST_MakePoint($5,$4),4326), $6, coalesce($7::timestamptz, now()), $8, $9, $10, now())
@@ -44,6 +45,11 @@ async function ingestBusway(app, request, b) {
        where vehicle_live_states.measured_at < excluded.measured_at`,
       [busId, tripId, positionId, lat, lon, measuredAt, b.receivedAt ?? null, freshness, b.speedMps ?? null, b.headingDeg ?? null],
     )
+  }
+  // Publication is gated by the grant inside publishVehicle; ingest never enables visibility.
+  // A delayed packet that did not update the live state publishes nothing.
+  if (updatesLive) {
+    try { await app.publishVehicle?.(busId) } catch { /* realtime is best effort; data is stored */ }
   }
   await app.db.query(
     `insert into gps_gateway_messages (device_external_id, source_position_id, processing_status, raw_hash) values ($1,$2,'accepted',$3)`,

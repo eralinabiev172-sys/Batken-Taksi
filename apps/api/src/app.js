@@ -47,7 +47,7 @@ export async function buildApp({ config, pool, loggerStream }) {
   await registerSecurityHeaders(app)
   await app.register(swagger, { openapi: { info: { title: 'BusWay KG API', version: '0.1.0' } } })
   registerDb(app, pool ?? createPool(config), { owned: !pool })
-  await registerWebsocket(app)
+  await registerWebsocket(app, { expiryCheckMs: config.wsExpiryCheckMs })
   registerAuth(app)
   registerCsrf(app)
   await app.register(healthRoutes)

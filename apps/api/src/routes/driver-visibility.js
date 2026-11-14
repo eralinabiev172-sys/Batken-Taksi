@@ -59,6 +59,7 @@ export default async function driverVisibilityRoutes(app) {
       `insert into public_visibility_grants (driver_assignment_id, driver_user_id, bus_id, expires_at) values ($1,$2,$3,$4) returning *`,
       [assignment.id, session.userId, assignment.bus_id, expiresAt],
     )
+    try { await app.publishVehicle?.(assignment.bus_id) } catch { /* best effort */ }
     reply.code(201).send({ grant: rows[0], enabled: true, expiresAt: rows[0].expires_at })
   })
 
@@ -70,6 +71,9 @@ export default async function driverVisibilityRoutes(app) {
       `update public_visibility_grants set disabled_at = now(), disabled_reason = 'manual' where driver_user_id = $1 and disabled_at is null returning *`,
       [session.userId],
     )
+    for (const row of rows) {
+      try { await app.publishVehicle?.(row.bus_id) } catch { /* best effort */ }
+    }
     reply.send({ disabled: rows.length > 0 })
   })
 }

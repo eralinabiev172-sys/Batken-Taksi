@@ -2,7 +2,7 @@ import { runReconciliation } from '../services/reconciliation.js'
 
 export default async function adminReconciliationRoutes(app) {
   app.post('/admin/reconciliation/run', async (request, reply) => {
-    const session = await app.resolveSession(parseCookie(request.headers?.cookie))
+    const session = await app.resolveSession(parseCookie(request.headers?.cookie)[app.SESSION_COOKIE])
     if (!session) { reply.code(401).send({ error: { code: 'UNAUTHENTICATED', message: 'Authentication required', requestId: request.id } }); return }
     if (!session.roles.includes('admin')) { reply.code(403).send({ error: { code: 'FORBIDDEN', message: 'Forbidden', requestId: request.id } }); return }
     const result = await runReconciliation(app.db)
