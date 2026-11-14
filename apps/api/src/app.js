@@ -10,6 +10,7 @@ import healthRoutes from './routes/health.js'
 import authRoutes from './routes/auth.js'
 import adminFleetRoutes from './routes/admin-fleet.js'
 import adminAssignmentsRoutes from './routes/admin-assignments.js'
+import driverTripsRoutes from './routes/driver-trips.js'
 
 /**
  * Builds the Fastify application without starting to listen.
@@ -44,6 +45,7 @@ export async function buildApp({ config, pool, loggerStream }) {
   await app.register(authRoutes, { prefix: '/api/v1' })
   await app.register(adminFleetRoutes, { prefix: '/api/v1' })
   await app.register(adminAssignmentsRoutes, { prefix: '/api/v1' })
+  await app.register(driverTripsRoutes, { prefix: '/api/v1' })
 
   return app
 }
