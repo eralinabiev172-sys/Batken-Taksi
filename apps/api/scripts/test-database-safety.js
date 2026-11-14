@@ -15,17 +15,20 @@ function requireSafe(condition) {
   if (!condition) throw new TestDatabaseSafetyError()
 }
 
-function parseTarget(value, database, user) {
+const ISOLATED_TEST_PORT = '55433'
+function parseTarget(value, database, user, env = process.env) {
   try {
     const url = new URL(value)
     requireSafe(['postgres:', 'postgresql:'].includes(url.protocol))
-    requireSafe(url.hostname === '127.0.0.1' && url.port === '5432')
+    const allowedPorts = ['5432']
+    if (env.BUSWAY_ALLOW_ISOLATED_TESTS === '1') allowedPorts.push(ISOLATED_TEST_PORT)
+    requireSafe(url.hostname === '127.0.0.1' && allowedPorts.includes(url.port))
     requireSafe(url.pathname === `/${database}` && decodeURIComponent(url.username) === user)
     requireSafe(Boolean(url.password) && !url.search && !url.hash)
     // Explicit pg options do not inherit connection targets or session options
     // from PGHOST, PGPORT, PGDATABASE, PGUSER, PGOPTIONS or URL query parameters.
     return Object.freeze({
-      host: '127.0.0.1', port: 5432, database, user,
+      host: '127.0.0.1', port: Number(url.port), database, user,
       password: decodeURIComponent(url.password),
       options: '-c statement_timeout=15000', ssl: false, connectionTimeoutMillis: 5000,
     })
@@ -39,10 +42,11 @@ export function validateTestTargets(env) {
   // Not supplied by .env.example or automatically enabled by the test runner.
   // Set only in the shell for an explicitly authorised destructive test run.
   requireSafe(env.BUSWAY_ALLOW_DESTRUCTIVE_TESTS === 'busway_test')
-  parseTarget(env.DATABASE_URL, 'busway', 'busway_app')
-  parseTarget(env.MIGRATOR_DATABASE_URL, 'busway', 'busway_migrator')
+  if (env.BUSWAY_ALLOW_ISOLATED_TESTS === '1') requireSafe(env.BUSWAY_ISOLATED_TEST_CONTAINER === 'busway-test-postgres-iso')
+  parseTarget(env.DATABASE_URL, 'busway', 'busway_app', env)
+  parseTarget(env.MIGRATOR_DATABASE_URL, 'busway', 'busway_migrator', env)
   const targets = {}
-  for (const [key, role] of Object.entries(ROLES)) targets[key] = parseTarget(env[key], TEST_DB, role)
+  for (const [key, role] of Object.entries(ROLES)) targets[key] = parseTarget(env[key], TEST_DB, role, env)
   return Object.freeze(targets)
 }
 
