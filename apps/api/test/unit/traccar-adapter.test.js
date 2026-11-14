@@ -21,10 +21,10 @@ const sample = {
 
 describe('traccar adapter', () => {
   it('converts a valid position', () => {
-    const out = traccarPositionToBusway(sample, 'tracker-7')
+    const out = traccarPositionToBusway(sample)
     expect(out).not.toBeNull()
     expect(out.gatewayPositionId).toBe('12345')
-    expect(out.deviceExternalId).toBe('tracker-7')
+    expect(out.traccarDeviceId).toBe('7')
     expect(out.measuredAt).toBe('2026-11-15T09:59:59.500Z')
     expect(out.position).toEqual({ latitude: 40.5, longitude: 72.8 })
     expect(out.speedMps).toBeCloseTo(10 * 0.514444, 5)
@@ -32,27 +32,27 @@ describe('traccar adapter', () => {
     expect(out.accuracyM).toBe(5)
   })
   it('converts speed knots to m/s', () => {
-    const out = traccarPositionToBusway({ ...sample, speed: 0 }, 't')
+    const out = traccarPositionToBusway({ ...sample, speed: 0 })
     expect(out.speedMps).toBe(0)
   })
   it('returns null for missing id', () => {
-    expect(traccarPositionToBusway({ ...sample, id: undefined, positionId: undefined }, 't')).toBeNull()
+    expect(traccarPositionToBusway({ ...sample, id: undefined, positionId: undefined })).toBeNull()
   })
   it('returns null for missing device external id', () => {
-    expect(traccarPositionToBusway({ ...sample, deviceId: undefined }, undefined)).toBeNull()
+    expect(traccarPositionToBusway({ ...sample, deviceId: undefined })).toBeNull()
   })
   it('returns null for invalid coordinates', () => {
-    expect(traccarPositionToBusway({ ...sample, latitude: 200 }, 't')).toBeNull()
-    expect(traccarPositionToBusway({ ...sample, longitude: 300 }, 't')).toBeNull()
+    expect(traccarPositionToBusway({ ...sample, latitude: 200 })).toBeNull()
+    expect(traccarPositionToBusway({ ...sample, longitude: 300 })).toBeNull()
   })
   it('returns null for missing measuredAt', () => {
     const rest = { ...sample }
     delete rest.fixTime; delete rest.deviceTime; delete rest.serverTime
-    expect(traccarPositionToBusway(rest, 't')).toBeNull()
+    expect(traccarPositionToBusway(rest)).toBeNull()
   })
   it('returns null for non-object input', () => {
-    expect(traccarPositionToBusway(null, 't')).toBeNull()
-    expect(traccarPositionToBusway('x', 't')).toBeNull()
+    expect(traccarPositionToBusway(null)).toBeNull()
+    expect(traccarPositionToBusway('x')).toBeNull()
   })
   it('converts array payload via deviceMap', () => {
     const out = traccarPayloadToBusway([sample, { ...sample, id: 999, latitude: 999 }], { 7: 'tracker-7' })

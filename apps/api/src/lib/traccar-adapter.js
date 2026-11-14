@@ -3,12 +3,12 @@
 
 const KNOTS_TO_MPS = 0.5144444444444444
 
-export function traccarPositionToBusway(pos, deviceExternalId) {
+export function traccarPositionToBusway(pos) {
   if (!pos || typeof pos !== 'object') return null
   const gatewayPositionId = pos.id != null ? String(pos.id) : (pos.positionId != null ? String(pos.positionId) : null)
   if (!gatewayPositionId) return null
-  const externalId = deviceExternalId || (pos.deviceId != null ? String(pos.deviceId) : null)
-  if (!externalId) return null
+  const traccarDeviceId = pos.deviceId != null ? String(pos.deviceId) : null
+  if (!traccarDeviceId) return null
   const measuredAt = pos.fixTime || pos.deviceTime || pos.serverTime
   if (!measuredAt) return null
   const lat = Number(pos.latitude)
@@ -21,7 +21,7 @@ export function traccarPositionToBusway(pos, deviceExternalId) {
   const accuracy = pos.accuracy != null ? Number(pos.accuracy) : undefined
   return {
     gatewayPositionId,
-    deviceExternalId: externalId,
+    traccarDeviceId,
     measuredAt,
     receivedAt: pos.serverTime || undefined,
     sequence: pos.protocol != null ? `${pos.protocol}:${pos.id}` : String(pos.id),
@@ -29,16 +29,14 @@ export function traccarPositionToBusway(pos, deviceExternalId) {
     speedMps: Number.isFinite(speedMps) ? speedMps : undefined,
     headingDeg: Number.isFinite(heading) ? heading : undefined,
     accuracyM: Number.isFinite(accuracy) ? accuracy : undefined,
-    attributes: pos.attributes && typeof pos.attributes === 'object' ? pos.attributes : {},
   }
 }
 
-export function traccarPayloadToBusway(payload, deviceMap = {}) {
+export function traccarPayloadToBusway(payload) {
   const items = Array.isArray(payload) ? payload : [payload]
   const out = []
   for (const item of items) {
-    const externalId = deviceMap[item?.deviceId] || deviceMap[String(item?.deviceId)]
-    const converted = traccarPositionToBusway(item, externalId)
+    const converted = traccarPositionToBusway(item)
     if (converted) out.push(converted)
   }
   return out
