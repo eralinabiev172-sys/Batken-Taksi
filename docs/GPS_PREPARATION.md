@@ -18,13 +18,17 @@
 
 ## 2. Сравнительная таблица кандидатов (ориентировочно, цены не подтверждены)
 
-| Модель | Протокол | LTE bands | Offline buffer | Автономность | Примечание |
+| Модель | Точные bands/протокол | Питание | Offline buffer | Совместимость с Traccar | Примечание |
 |---|---|---|---|---|---|
-| Teltonika FMB920 | Teltonika (Traccar) | 2G/3G/LTE (зависит от варианта) | да | от бортовой сети | Широко поддерживается Traccar; требует проверки exact order code/firmware |
-| Queclink GV300 | Queclink | LTE Cat-M/NB-IoT варианты | да | от бортовой сети | Требует проверки bands и firmware |
-| Jimi (Concox) VL103M | Concox | LTE | да | от бортовой сети | Более дешёвый; проверить поддержку Traccar и безопасность |
+| Teltonika FMB920 | 2G (GSM/GPRS) only — **не LTE**. Протокол Teltonika Codec 8/8E | 10–30 V DC (бортовая сеть) | да (flash) | да (Traccar поддерживает Teltonika) | Широко распространён, но 2G-только; в КР покрытие 2G есть, но запас на будущее ограничен. Требует проверки exact order code/firmware (D-115). |
+| Teltonika FMC920 | LTE Cat-M1 / NB-IoT (bands зависят от регионального варианта) + 2G fallback. Протокол Teltonika | 10–30 V DC | да (flash) | да | Современная LTE-альтернатива FMB920; предпочтительнее для новых установок. Проверить региональный вариант и bands для КР. |
+| Queclink GV300 | 2G only. Протокол Queclink (GTSL) | 9–36 V DC | да | да (Traccar поддерживает Queclink) | Не LTE. Часто используется; проверить exact firmware. |
+| Queclink GV300W | 2G/3G (WCDMA). Протокол Queclink | 9–36 V DC | да | да | 3G-вариант; 3G покрытие в КР может быть ограничено. |
+| Jimi (Concox) VL103M | Уточнить точную модификацию: существуют 2G и 4G (LTE Cat-M/NB-IoT) варианты с разными order code. Протокол Concox (JT808-совместимый) | 9–36 V DC | да | да (Traccar поддерживает Concox) | Более дешёвый; **обязательно** проверить exact model/order code/firmware и LTE bands до закупки (D-115). |
 
-Цены, order code и firmware должны быть проверены на Этапе 4 (D-115). Не считать таблицу окончательным выбором.
+Не смешивать характеристики разных моделей. Цены, order code и firmware проверяются на Этапе 4 (D-115). Не считать таблицу окончательным выбором. Совместимость с сетями КР требует проверки частот и покрытия (D-120).
+
+Источники: официальные datasheets Teltonika (teltonika-gps.com), Queclink (queclink.com), Jimi (jimicloud.com/jimilab.com), документация Traccar (traccar.org/devices).
 
 ## 3. SIM и покрытие
 

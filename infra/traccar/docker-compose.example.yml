@@ -1,20 +1,46 @@
 # BusWay KG: isolated self-hosted Traccar (example only). Do not run without owner approval.
-# Binds to 127.0.0.1 only; never starts automatically; does not touch other projects.
+# Uses an internal Docker network; Traccar reaches PostgreSQL by service name, not 127.0.0.1.
+# UI/API bound to 127.0.0.1 only; device port published only after model/security review.
+# Does not touch other projects' containers or volumes.
 name: busway-traccar
 services:
+  db:
+    image: postgres:16-alpine
+    container_name: busway-traccar-db
+    restart: "no"
+    environment:
+      POSTGRES_USER: traccar
+      POSTGRES_PASSWORD: change-me
+      POSTGRES_DB: traccar
+    volumes:
+      - traccar_pgdata:/var/lib/postgresql/data
+    networks:
+      - traccar-net
+    mem_limit: 256m
   traccar:
-    image: traccar/traccar:latest
+    image: traccar/traccar:6.6
     container_name: busway-traccar
     restart: "no"
+    depends_on:
+      - db
     ports:
       - "127.0.0.1:8082:8082"
-      - "127.0.0.1:5023:5023"   # example device protocol port; change to the chosen protocol
+      # Device protocol port published only after model/security review (D-016).
+      # - "127.0.0.1:5023:5023"
     volumes:
       - ./traccar.xml:/opt/traccar/conf/traccar.xml:ro
       - traccar_data:/opt/traccar/data
       - traccar_logs:/opt/traccar/logs
+    networks:
+      - traccar-net
     mem_limit: 512m
+    shm_size: 64mb
+networks:
+  traccar-net:
+    name: busway-traccar-net
 volumes:
+  traccar_pgdata:
+    name: busway_traccar_pgdata
   traccar_data:
     name: busway_traccar_data
   traccar_logs:
