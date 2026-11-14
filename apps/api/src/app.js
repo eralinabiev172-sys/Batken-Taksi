@@ -8,6 +8,7 @@ import { createServerLogContext, trustedLogFields } from './lib/log-context.js'
 import { registerSecurityHeaders } from './plugins/security-headers.js'
 import healthRoutes from './routes/health.js'
 import authRoutes from './routes/auth.js'
+import adminFleetRoutes from './routes/admin-fleet.js'
 
 /**
  * Builds the Fastify application without starting to listen.
@@ -40,6 +41,7 @@ export async function buildApp({ config, pool, loggerStream }) {
   registerCsrf(app)
   await app.register(healthRoutes)
   await app.register(authRoutes, { prefix: '/api/v1' })
+  await app.register(adminFleetRoutes, { prefix: '/api/v1' })
 
   return app
 }
