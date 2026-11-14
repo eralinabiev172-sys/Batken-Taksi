@@ -123,6 +123,7 @@ h1, h2, h3, p { margin-top: 0; }
 .map-legend { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
 .map-legend > strong { font-size: 12px; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); margin-right: 3px; }
 .map-source { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .6px; font-weight: 700; }
+.live-dot { width: 7px; height: 7px; border-radius: 50%; background: #1f9d55; box-shadow: 0 0 0 4px rgba(31,157,85,.15); }
 .demo-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px rgba(232,93,63,.12); }
 .map-stage { position: relative; height: 615px; background: #e9efeb; }
 .transport-map { width: 100%; height: 100%; z-index: 1; }

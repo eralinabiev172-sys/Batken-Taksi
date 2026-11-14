@@ -9,6 +9,7 @@ import { registerSecurityHeaders } from './plugins/security-headers.js'
 import swagger from '@fastify/swagger'
 import { registerWebsocket } from './plugins/websocket.js'
 import healthRoutes from './routes/health.js'
+import publicRoutes from './routes/public.js'
 import authRoutes from './routes/auth.js'
 import adminFleetRoutes from './routes/admin-fleet.js'
 import adminAssignmentsRoutes from './routes/admin-assignments.js'
@@ -51,6 +52,7 @@ export async function buildApp({ config, pool, loggerStream }) {
   registerAuth(app)
   registerCsrf(app)
   await app.register(healthRoutes)
+  await app.register(publicRoutes, { prefix: '/api/v1' })
   await app.register(authRoutes, { prefix: '/api/v1' })
   await app.register(adminFleetRoutes, { prefix: '/api/v1' })
   await app.register(adminAssignmentsRoutes, { prefix: '/api/v1' })

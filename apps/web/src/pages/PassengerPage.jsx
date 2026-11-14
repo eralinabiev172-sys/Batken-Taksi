@@ -10,22 +10,27 @@ import { getGpsStatus } from '../models/gpsStatus.js'
 import { transportService } from '../services/transportService.js'
 
 export default function PassengerPage() {
+  const isReal = transportService.mode === 'real'
   const { t, localize } = useLocale()
   const [routes, setRoutes] = useState([])
   const [buses, setBuses] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [query, setQuery] = useState('')
-  const [selectedRouteId, setSelectedRouteId] = useState('route-1')
-  const [selectedDirectionId, setSelectedDirectionId] = useState('direction-school-to-batken')
+  const [selectedRouteId, setSelectedRouteId] = useState(isReal ? '' : 'route-1')
+  const [selectedDirectionId, setSelectedDirectionId] = useState(isReal ? '' : 'direction-school-to-batken')
   const [selectedBusId, setSelectedBusId] = useState(null)
 
   useEffect(() => {
     let active = true
-    Promise.all([transportService.getRoutes(), transportService.getPublicVehicles('route-1')])
+    Promise.all([transportService.getRoutes(), transportService.getPublicVehicles(isReal ? selectedRouteId || undefined : 'route-1')])
       .then(([routeData, busData]) => {
         if (!active) return
         setRoutes(routeData)
+        if (isReal && !selectedRouteId && routeData[0]) {
+          setSelectedRouteId(routeData[0].id)
+          setSelectedDirectionId(routeData[0].directions[0]?.id ?? '')
+        }
         setBuses(busData)
         setSelectedBusId(busData[0]?.id ?? null)
       })
@@ -38,7 +43,7 @@ export default function PassengerPage() {
       setSelectedBusId((current) => publicRouteVehicles.some((bus) => bus.id === current) ? current : publicRouteVehicles[0]?.id ?? null)
     })
     return () => { active = false; disconnect() }
-  }, [selectedRouteId, t])
+  }, [selectedRouteId, t, isReal])
 
   const route = routes.find((item) => item.id === selectedRouteId)
   const direction = route?.directions.find((item) => item.id === selectedDirectionId) ?? route?.directions[0]
@@ -60,7 +65,7 @@ export default function PassengerPage() {
           <h1>{t('mapTitle')}</h1>
           <p>{t('mapSubtitle')}</p>
         </div>
-        <DemoBanner />
+        {!isReal && <DemoBanner />}
       </section>
 
       <div className="passenger-workspace page-pad">
@@ -93,7 +98,7 @@ export default function PassengerPage() {
         <section className="map-panel" aria-label={t('mapTitle')}>
           <div className="map-panel__topbar">
             <div className="map-legend"><strong>{t('gpsLegend')}</strong>{['live', 'delayed', 'stale', 'offline'].map((status) => <StatusBadge key={status} status={status} />)}</div>
-            <span className="map-source"><span className="demo-dot" />{t('demoCoordinates')}</span>
+            <span className="map-source"><span className={isReal ? 'live-dot' : 'demo-dot'} />{t(isReal ? 'liveCoordinates' : 'demoCoordinates')}</span>
           </div>
           <div className="map-stage">
             {loading && <div className="map-state"><span className="spinner" /><p>{t('loadingMap')}</p></div>}

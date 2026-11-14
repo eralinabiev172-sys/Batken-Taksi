@@ -19,7 +19,7 @@ export default function BusCard({ bus, route, direction, selected = false, onCli
         {detailed && (
           <div className={`freshness-callout freshness-callout--${status}`}>
             <strong>{t(`${status}Hint`)}</strong>
-            <span>{bus.speedKph === 0 ? t('busStanding') : t('demoCoordinates')}</span>
+            <span>{bus.speedKph === 0 ? t('busStanding') : t(bus.isDemo === false ? 'liveCoordinates' : 'demoCoordinates')}</span>
           </div>
         )}
       </div>

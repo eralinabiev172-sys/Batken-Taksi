@@ -1,4 +1,5 @@
 import { BATKEN_REGION, buses as fixturesBuses, driverDemo, drivers as fixturesDrivers, routes as fixturesRoutes, trackers as fixturesTrackers } from '../data/mockData.js'
+import { createRealTransportService } from './realTransportService.js'
 import { bishkekCutoffToIso, endOfCurrentBishkekDay, isVisibilityActive } from '../models/publicVisibility.js'
 
 const clone = (value) => structuredClone(value)
@@ -147,4 +148,7 @@ export function createDemoTransportService({ now = () => new Date() } = {}) {
   }
 }
 
-export const transportService = createDemoTransportService()
+// The real passenger map is opt-in (VITE_USE_REAL_API=true); the demo service is the default.
+export const transportService = import.meta.env?.VITE_USE_REAL_API === 'true'
+  ? createRealTransportService({ demo: createDemoTransportService() })
+  : createDemoTransportService()

@@ -1,11 +1,15 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import DemoBanner from './DemoBanner.jsx'
 import Icon from './Icon.jsx'
 import LanguageSwitcher from './LanguageSwitcher.jsx'
 import { useLocale } from '../localization/LocaleContext.jsx'
+import { transportService } from '../services/transportService.js'
 
 export default function AppLayout() {
   const { t } = useLocale()
+  const { pathname } = useLocation()
+  // With the real API only the public map is real; driver and admin screens remain demo and keep the label.
+  const showDemoLabel = !(transportService.mode === 'real' && pathname === '/')
   const navItems = [
     { to: '/', label: t('passenger'), icon: 'map', end: true },
     { to: '/driver', label: t('driver'), icon: 'wheel' },
@@ -28,7 +32,7 @@ export default function AppLayout() {
           ))}
         </nav>
         <div className="header-actions">
-          <DemoBanner compact />
+          {showDemoLabel && <DemoBanner compact />}
           <LanguageSwitcher />
         </div>
       </header>

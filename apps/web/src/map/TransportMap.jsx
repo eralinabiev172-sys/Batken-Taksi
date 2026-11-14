@@ -54,7 +54,7 @@ export default function TransportMap({ route, buses, selectedBusId, onSelectBus 
             eventHandlers={{ click: () => onSelectBus(bus.id) }}
           >
             <Tooltip direction="top" offset={[0, -16]}>{bus.publicId}</Tooltip>
-            <Popup><strong>{bus.publicId}</strong><br />{t(bus.gpsStatus)} · {t('demoCoordinates')}<br />{bus.direction ? localize(bus.direction.name) : t('directionUnknown')}</Popup>
+            <Popup><strong>{bus.publicId}</strong><br />{t(bus.gpsStatus)} · {t(bus.isDemo === false ? 'liveCoordinates' : 'demoCoordinates')}<br />{bus.direction ? localize(bus.direction.name) : t('directionUnknown')}</Popup>
           </CircleMarker>
         )
       })}
