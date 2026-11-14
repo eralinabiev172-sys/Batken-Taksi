@@ -6,6 +6,7 @@ import { registerErrorHandling } from './plugins/errors.js'
 import { createSafeLogger } from './plugins/logging.js'
 import { createServerLogContext, trustedLogFields } from './lib/log-context.js'
 import { registerSecurityHeaders } from './plugins/security-headers.js'
+import { registerWebsocket } from './plugins/websocket.js'
 import healthRoutes from './routes/health.js'
 import authRoutes from './routes/auth.js'
 import adminFleetRoutes from './routes/admin-fleet.js'
@@ -41,6 +42,7 @@ export async function buildApp({ config, pool, loggerStream }) {
   registerErrorHandling(app)
   await registerSecurityHeaders(app)
   registerDb(app, pool ?? createPool(config), { owned: !pool })
+  await registerWebsocket(app)
   registerAuth(app)
   registerCsrf(app)
   await app.register(healthRoutes)
