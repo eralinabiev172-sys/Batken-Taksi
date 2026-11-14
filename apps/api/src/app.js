@@ -1,10 +1,13 @@
 import Fastify from 'fastify'
 import { registerDb, createPool } from './plugins/db.js'
+import { registerAuth } from './plugins/auth.js'
+import { registerCsrf } from './plugins/csrf.js'
 import { registerErrorHandling } from './plugins/errors.js'
 import { createSafeLogger } from './plugins/logging.js'
 import { createServerLogContext, trustedLogFields } from './lib/log-context.js'
 import { registerSecurityHeaders } from './plugins/security-headers.js'
 import healthRoutes from './routes/health.js'
+import authRoutes from './routes/auth.js'
 
 /**
  * Builds the Fastify application without starting to listen.
@@ -33,7 +36,10 @@ export async function buildApp({ config, pool, loggerStream }) {
   registerErrorHandling(app)
   await registerSecurityHeaders(app)
   registerDb(app, pool ?? createPool(config), { owned: !pool })
+  registerAuth(app)
+  registerCsrf(app)
   await app.register(healthRoutes)
+  await app.register(authRoutes, { prefix: '/api/v1' })
 
   return app
 }
