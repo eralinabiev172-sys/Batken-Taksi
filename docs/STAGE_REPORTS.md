@@ -540,3 +540,13 @@ Remote, push и deploy в план не входят и не выполняют�
 - Commit/push/deploy не выполнялись. Реализация 3.1 — неотслеживаемые файлы (~40) + 3 изменённых `docs/*.md` (+58/−5) + `D apps/web/package-lock.json`.
 
 **Окончательный статус Этапа 3.1: IMPLEMENTED — FINAL AUDIT PENDING.** Окончательный `PASS` не присваивается до итогового независимого аудита. Этап 3.2 не начат.
+
+---
+
+# Этап 3.2 — Финальная стабилизация и приёмка
+
+**Дата:** 15 ноября 2026 года
+**Ветка:** `stage3/3-final-acceptance`, HEAD `e02063cfd758635fe4be348febe78c4296be4741`
+**Статус:** `IMPLEMENTED — FINAL AUDIT PENDING`.
+
+Подэтапы 3.2.1–3.2.12 реализованы, закоммичены и опубликованы на GitHub. Финальная стабилизация добавила smoke-тесты (`final-acceptance-smoke.test.js`, 11 тестов). Unit-тесты API: **367/367 PASS** (20 файлов). ESLint: PASS. Frontend build: PASS (104 modules, 3.20s). DB integration: NOT TESTED (Docker/PostgreSQL запрещены; busway/busway_test не изменялись). Открытые решения: D-108, D-111, D-133, архивирование GPS с активной привязкой, npm audit (3 moderate dev-only), пагинация, sim_cards, OpenAPI. Этап 3.2 завершён; Этап 3.3/4 не начат.
