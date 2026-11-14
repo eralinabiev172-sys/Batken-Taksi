@@ -9,7 +9,8 @@
   <entry key="database.password">change-me</entry>
 
   <entry key="web.port">8082</entry>
-  <entry key="web.address">127.0.0.1</entry>
+  <!-- Bind inside container to all interfaces so the loopback-only published port works. -->
+  <entry key="web.address">0.0.0.0</entry>
 
   <!-- Disable auto-registration of unknown devices. -->
   <entry key="devices.autoRegistration">false</entry>

@@ -21,7 +21,8 @@
 | Модель | Точные bands/протокол | Питание | Offline buffer | Совместимость с Traccar | Примечание |
 |---|---|---|---|---|---|
 | Teltonika FMB920 | 2G (GSM/GPRS) only — **не LTE**. Протокол Teltonika Codec 8/8E | 10–30 V DC (бортовая сеть) | да (flash) | да (Traccar поддерживает Teltonika) | Широко распространён, но 2G-только; в КР покрытие 2G есть, но запас на будущее ограничен. Требует проверки exact order code/firmware (D-115). |
-| Teltonika FMC920 | LTE Cat-M1 / NB-IoT (bands зависят от регионального варианта) + 2G fallback. Протокол Teltonika | 10–30 V DC | да (flash) | да | Современная LTE-альтернатива FMB920; предпочтительнее для новых установок. Проверить региональный вариант и bands для КР. |
+| Teltonika FMC920 | **LTE Cat 1** (bands зависят от регионального варианта, например FMC920 с поддержкой B1/B3/B5/B7/B8/B20/B28) + 2G fallback. Протокол Teltonika (Codec 8/8E) | 10–30 V DC | да (flash) | да (Traccar поддерживает Teltonika) | Современная LTE-альтернатива FMB920; предпочтительнее для новых установок. Проверить региональный variant и bands для КР. |
+| Teltonika FMM920 | **LTE Cat-M1 / NB-IoT** (bands зависят от регионального варианта) + 2G fallback. Протокол Teltonika | 10–30 V DC | да (flash) | да | Cat-M1/NB-IoT вариант для низкого энергопотребления; проверить покрытие Cat-M1 в КР. |
 | Queclink GV300 | 2G only. Протокол Queclink (GTSL) | 9–36 V DC | да | да (Traccar поддерживает Queclink) | Не LTE. Часто используется; проверить exact firmware. |
 | Queclink GV300W | 2G/3G (WCDMA). Протокол Queclink | 9–36 V DC | да | да | 3G-вариант; 3G покрытие в КР может быть ограничено. |
 | Jimi (Concox) VL103M | Уточнить точную модификацию: существуют 2G и 4G (LTE Cat-M/NB-IoT) варианты с разными order code. Протокол Concox (JT808-совместимый) | 9–36 V DC | да | да (Traccar поддерживает Concox) | Более дешёвый; **обязательно** проверить exact model/order code/firmware и LTE bands до закупки (D-115). |
