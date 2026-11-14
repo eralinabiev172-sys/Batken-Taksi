@@ -17,6 +17,7 @@
   "dependencies": {
     "@busway-kg/contracts": "*",
     "@fastify/helmet": "13.2.0",
+    "@fastify/swagger": "^9.9.4",
     "@fastify/type-provider-typebox": "6.3.0",
     "@fastify/websocket": "^11.3.7",
     "ajv-formats": "^3.0.1",

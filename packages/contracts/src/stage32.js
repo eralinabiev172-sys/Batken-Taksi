@@ -1,0 +1,6 @@
+import Type from 'typebox'
+
+export const BusSchema = Type.Object({ id: Type.String(), publicId: Type.String(), cityId: Type.String(), internalNumber: Type.String(), status: Type.String() }, { additionalProperties: false })
+export const RouteSchema = Type.Object({ id: Type.String(), publicId: Type.String(), cityId: Type.String(), publicNumber: Type.String(), nameRu: Type.String(), nameKy: Type.String(), status: Type.String() }, { additionalProperties: false })
+export const TripSchema = Type.Object({ id: Type.String(), publicId: Type.String(), driverUserId: Type.String(), busId: Type.String(), status: Type.String(), startedAt: Type.String(), endedAt: Type.Optional(Type.String()) }, { additionalProperties: false })
+export const GrantSchema = Type.Object({ id: Type.String(), publicId: Type.String(), busId: Type.String(), driverUserId: Type.String(), enabledAt: Type.String(), expiresAt: Type.String(), disabledAt: Type.Optional(Type.String()), disabledReason: Type.Optional(Type.String()) }, { additionalProperties: false })

@@ -6,6 +6,7 @@ import { registerErrorHandling } from './plugins/errors.js'
 import { createSafeLogger } from './plugins/logging.js'
 import { createServerLogContext, trustedLogFields } from './lib/log-context.js'
 import { registerSecurityHeaders } from './plugins/security-headers.js'
+import swagger from '@fastify/swagger'
 import { registerWebsocket } from './plugins/websocket.js'
 import healthRoutes from './routes/health.js'
 import authRoutes from './routes/auth.js'
@@ -44,6 +45,7 @@ export async function buildApp({ config, pool, loggerStream }) {
 
   registerErrorHandling(app)
   await registerSecurityHeaders(app)
+  await app.register(swagger, { openapi: { info: { title: 'BusWay KG API', version: '0.1.0' } } })
   registerDb(app, pool ?? createPool(config), { owned: !pool })
   await registerWebsocket(app)
   registerAuth(app)
