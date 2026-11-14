@@ -1,0 +1,25 @@
+{
+  "name": "busway-kg",
+  "private": true,
+  "version": "0.1.0",
+  "description": "BusWay KG monorepo (D-113): apps/web, apps/api, packages/contracts",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "devDependencies": {
+    "vite": "^7.0.0"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "lint": "npm run lint --workspaces --if-present",
+    "test": "npm run test:run --workspaces --if-present",
+    "web:test:run": "npm run test:run -w @busway-kg/web",
+    "web:test:e2e": "npm run test:e2e -w @busway-kg/web",
+    "web:build": "npm run build -w @busway-kg/web",
+    "api:test": "npm run test:run -w @busway-kg/api",
+    "migrate": "npm run migrate -w @busway-kg/api --"
+  }
+}

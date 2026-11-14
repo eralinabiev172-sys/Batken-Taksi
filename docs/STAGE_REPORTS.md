@@ -435,3 +435,108 @@ git status --short
 ```
 
 Remote, push и deploy в план не входят и не выполняются. Старые `index.html`/`test1/` могут остаться untracked: это ожидаемо для предложенного ограниченного первого коммита, не повод удалять их. Этап 3 по-прежнему не начат и не разрешён.
+
+## Решение владельца: архитектура подэтапа 3.1 {#stage31-architecture-decision}
+
+**Дата решения:** 14 ноября 2026 года. **Базовый Git checkpoint:** `ec20a996d0eef6199e43034754dc3db515f638ac`. Этап 2 закрыт: COMPLETED (PASS), исторические отчёты не менялись.
+
+**Решение.** Владелец условно утвердил семь вариантов (**OWNER APPROVED — CONDITIONAL**), записанных в `DECISIONS.md`:
+
+1. D-102 — Node.js 24 LTS, Fastify 5.x, `pg` 8.x;
+2. D-103 — SQL-миграции через `node-pg-migrate`, параметризованные запросы, без ORM;
+3. D-104 — TypeBox, JSON Schema, OpenAPI из схем, запрет неожиданных полей;
+4. D-107 — внутренние UUID и отдельные непрозрачные публичные идентификаторы (UUID не заменяет RBAC и проверки владения);
+5. D-113 — npm workspaces `apps/web`, `apps/api`, `packages/contracts`;
+6. D-136 — JavaScript ESM с JSDoc;
+7. D-137 — PostgreSQL 18 / PostGIS 3.7 в Docker, только `127.0.0.1`, предварительно порт 5432, образ `postgis/postgis:18-3.7` как кандидат.
+
+**Условия проверки до реализации.** Runtime-совместимость Fastify 5.x с Node 24; совместимость `node-pg-migrate` и TypeBox-провайдера; сохранение и сравнение lockfile `apps/web` и повтор 31/31 unit/UI и 22/22 E2E после перехода на workspaces; свободность порта 5432; совместимость образа, путь хранения данных, лицензия Docker Desktop, доступная оперативная память (на 14.11.2026 свободно около 0.6 ГБ из 7.2 ГБ). Установленный Node.js не обновляется.
+
+**Что не выполнено.** Реализация не начата, Этап 3 не начинался. Не создавались `apps/api`, `packages/contracts`, корневой `package.json`, lockfile, Docker Compose, миграции и исходные файлы. Не выполнялись `npm install` и `npm update`, запуск Docker и PostgreSQL, `git add`, `git commit`, `git push`, merge и deploy. Платные сервисы не подключались.
+
+**Сохранность Этапа 2.** Исходники, тесты и конфигурация `apps/web` не изменялись. Последний подтверждённый результат: lint 0 ошибок, unit/UI 31/31, E2E 22/22, build успешен, `npm audit` 0 уязвимостей.
+
+**Изменённые документы:** `DECISIONS.md`, `ROADMAP.md`, `STAGE_REPORTS.md`.
+
+**Статус:** DECISIONS RECORDED — IMPLEMENTATION NOT STARTED. Начало 3.1 возможно только по отдельному разрешению владельца.
+
+---
+
+# Этап 3.1 — Реализация (IMPLEMENTED — FINAL AUDIT PENDING)
+
+**Дата:** 14–15 ноября 2026 года
+**Ветка:** `stage3/3.1-foundation`, HEAD `ec20a996d0eef6199e43034754dc3db515f638ac`
+**Статус:** `IMPLEMENTED — FINAL AUDIT PENDING`. Окончательный `PASS` Этапу 3.1 не присваивается до итогового независимого аудита. Этап 3.2 не начат.
+
+## 1. Состав реализованных компонентов
+
+- npm workspaces: `apps/web` (Этап 2 сохранён), `apps/api`, `packages/contracts` (D-113).
+- `apps/api`: Fastify 5.x, `pg` 8.23.1, JavaScript ESM + JSDoc (D-136), ESLint.
+- PostgreSQL/PostGIS в Docker: `postgis/postgis@sha256:c5d1ba4292ff7b4471ff41cd515c677633797b72cdd2a7bb691cadaab91f1a1f` (PG 18.6 / PostGIS 3.7.0, linux/amd64), привязка `127.0.0.1:${BUSWAY_DB_PORT:-5432}` (D-137).
+- Миграции `0001_extensions_core.sql`, `0002_add_documented_text_fields.sql`, `0003_complete_m1_schema.sql` (node-pg-migrate, параметризованные запросы, без ORM; D-103).
+- Роли БД: `busway_admin` (bootstrap), `busway_migrator` (DDL), `busway_app` (DML, без UPDATE/DELETE на `audit_logs`).
+- HIGH-предохранитель тестовой БД: `apps/api/scripts/test-database-safety.js`, `apps/api/scripts/test-migrations.js`; `MIGRATE_TARGET=test` никогда не обращается к рабочей `busway`.
+- Безопасный лог-конвейер M2: `log-context.js`, `safe-diagnostics.js`, `logging.js`.
+- Строгий `parseDatabaseUrl` и параметры пула M3/M3.2: только `127.0.0.1:5432/busway/busway_app`, `DB_POOL_MAX` 1–10 (default 5), нейтрализация `PG*`, отказ при `PGREPLICATION`.
+- Безопасная диагностика конфигурации M3.4: фиксированный allowlist переменных/причин, провенанс через `WeakSet`.
+
+## 2. Результаты проверок
+
+- Unit-тесты API: **325/325 PASS** (14 файлов).
+- ESLint `apps/api`: PASS.
+- `git diff --check`: PASS.
+- Интеграционные тесты (clean scratch DB, идемпотентность `up`, отказ `down` 0003): PASS (на `busway_test`).
+- Дрель `m1-upgrade.test.js` (сохранность данных через 0002/0003, FK, права, триггеры, отказы `down`): PASS — запускалась вручную.
+
+## 3. Результаты независимых аудитов
+
+- HIGH (защита тестовых миграций): PASS.
+- M1 / M1.5 (миграции, схема): PASS.
+- M2 / M2.2 (лог-конвейер): PASS WITH WARNINGS.
+- M3 / M3.1 / M3.2 / M3.3 / M3.4 / M3.5 (DATABASE_URL и пул): M3.5 — PASS WITH WARNINGS.
+- M4.1 / M4.2 / M4.3 (закрепление Docker image): M4.3 — PASS.
+- M5 (сохранность данных): PASS WITH WARNINGS.
+
+## 4. Исправления и решения
+
+- HIGH: защита тестовой БД (`busway_test` only, проверка идентичности сервера, отказ `down` 0002/0003).
+- M1: 5 nullable-текстовых полей (0002); forward-only 0003 (`status` pending/active/suspended с синхронизацией `is_active`, `cities.bounds geometry(Polygon,4326)`, `country_code` с CHECK из 249 ISO alpha-2, поля аудита; `before/after` принимают только NULL или `{}`; `down` отказывает `0A000`).
+- M2: безопасный лог-конвейер через `log-context.js` (WeakMap), `createSafeLogger`, allowlist-классификация, `migrationDiagnostic`.
+- M3: строгий `parseDatabaseUrl`, `DB_POOL_MAX` 1–10, явные параметры пула, нейтрализация `PG*`, отказ при `PGREPLICATION`.
+- M3.4: фиксированный allowlist диагностики, провенанс через `WeakSet`.
+- M4: image закреплён по digest `sha256:c5d1ba4292ff7b4471ff41cd515c677633797b72cdd2a7bb691cadaab91f1a1f`.
+- Намеренный перенос статусов: `UPDATE driver_profiles SET is_active = false` и `status='pending'` по умолчанию.
+
+## 5. Известные Low-замечания
+
+- M3.4 Low-1: дедупликация сообщений и диагностики не симметрична (косметика).
+- M3.4 Low-2: `problemsFromLogLine` проверяет только словарь, без провенанса.
+- M3.4 Low-3: `createDiagnostics` экспортируется.
+- M5 Low-1: дрель сохранности данных не входит в обычный набор.
+- M5 Low-2: legacy-значение `is_active` намеренно сбрасывается (необратимо).
+- M5 Low-3: `snapshot()` не ловит тихие изменения типов.
+- M5 Low-4: `0001 down` разрушителен (только scratch/dev).
+- M5 Low-5: исторические `audit_logs` не имеют `created_at`.
+- M5 Low-6: проверка `0002 down` только в ручной дрели.
+
+## 6. Ограничения локальной конфигурации
+
+- Профиль БД: только `127.0.0.1:5432/busway/busway_app`. Production-профиля нет — `NODE_ENV=production` отклоняется.
+- `DB_POOL_MAX` 1–10 (default 5); `max_connections=30` в compose.
+- Порт 5432; Docker Desktop лицензия и RAM (~0.6 ГБ свободно из 7.2 ГБ).
+- `busway-postgres` остановлен; том `busway_pgdata` сохранён; миграции не применены к рабочей `busway` (только к `busway_test`).
+
+## 7. Неразрешённые вопросы
+
+- `npm audit`: 3 умеренные уязвимости `glob`/`minimatch` через dev-only `node-pg-migrate` 9.0.0.
+- OpenAPI: генерация из TypeBox-схем (D-104) — не реализована.
+- D-133 (максимальный срок показа offline-позиции) — открыт.
+- D-108 (модель ролей), D-111 (MFA администраторов), таймауты сессий, rate limit — не реализованы (Этап 3.2).
+
+## 8. Git
+
+- Ветка `stage3/3.1-foundation`, HEAD `ec20a996d0eef6199e43034754dc3db515f638ac`.
+- Индекс пуст; `git diff --check` чист.
+- Commit/push/deploy не выполнялись. Реализация 3.1 — неотслеживаемые файлы (~40) + 3 изменённых `docs/*.md` (+58/−5) + `D apps/web/package-lock.json`.
+
+**Окончательный статус Этапа 3.1: IMPLEMENTED — FINAL AUDIT PENDING.** Окончательный `PASS` не присваивается до итогового независимого аудита. Этап 3.2 не начат.

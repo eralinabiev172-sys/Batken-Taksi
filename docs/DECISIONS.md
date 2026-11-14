@@ -28,18 +28,18 @@
 | ID | Решение | Статус/примечание |
 |---|---|---|
 | D-101 | Fastify как модульный монолит; Traccar как отдельный инфраструктурный gateway | APPROVED |
-| D-102 | Поддерживаемые LTS Node.js и Fastify; точные версии проверить перед реализацией | APPROVED, versions DEFERRED |
-| D-103 | PostgreSQL/PostGIS и SQL migrations; конкретная ORM открыта | APPROVED, ORM PROPOSED |
-| D-104 | Контрактные JSON schemas/OpenAPI; TypeBox остаётся вариантом | APPROVED, library PROPOSED |
+| D-102 | Поддерживаемые LTS Node.js и Fastify; точные версии проверить перед реализацией | APPROVED, versions DEFERRED; уточнено 14.11.2026: OWNER APPROVED — CONDITIONAL (см. «Условное утверждение Этапа 3.1») |
+| D-103 | PostgreSQL/PostGIS и SQL migrations; конкретная ORM открыта | APPROVED, ORM PROPOSED; уточнено 14.11.2026: OWNER APPROVED — CONDITIONAL, без ORM (см. «Условное утверждение Этапа 3.1») |
+| D-104 | Контрактные JSON schemas/OpenAPI; TypeBox остаётся вариантом | APPROVED, library PROPOSED; уточнено 14.11.2026: OWNER APPROVED — CONDITIONAL, TypeBox (см. «Условное утверждение Этапа 3.1») |
 | D-105 | Server-side sessions, secure cookies, CSRF, Argon2id | APPROVED |
 | D-106 | Unit/integration/contract/E2E/security/recovery/load/hardware strategy | APPROVED |
-| D-107 | UTC; отдельно measured/received/published times; ID format уточнить | APPROVED, ID format DEFERRED |
+| D-107 | UTC; отдельно measured/received/published times; ID format уточнить | APPROVED, ID format DEFERRED; часть «ID format» уточнена 14.11.2026: OWNER APPROVED — CONDITIONAL (см. «Условное утверждение Этапа 3.1»); часть про UTC и времена не менялась |
 | D-108 | Одна основная привилегированная роль аккаунта в MVP | PROPOSED |
 | D-109 | Опубликованные маршруты должны сохранять историческую версию | PROPOSED |
 | D-110 | Сменяемый OSM-compatible tile provider; конкретный provider до production | APPROVED, provider DEFERRED |
 | D-111 | MFA администраторов до production | PROPOSED |
 | D-112 | Карта без регистрации; жалобы подтверждаются email | APPROVED |
-| D-113 | npm monorepo: `apps/web`, `apps/api`, `packages/contracts`, `infra/traccar` | PROPOSED |
+| D-113 | npm monorepo: `apps/web`, `apps/api`, `packages/contracts`, `infra/traccar` | PROPOSED; уточнено 14.11.2026: OWNER APPROVED — CONDITIONAL для `apps/web`, `apps/api`, `packages/contracts` (см. «Условное утверждение Этапа 3.1»); `infra/traccar` относится к Этапу 4 |
 | D-114 | Self-hosted Traccar с постоянной БД; не forwarder-only/in-memory | APPROVED |
 | D-115 | Конкретную модель/order code/firmware выбрать и проверить на Этапе 4 | DEFERRED |
 | D-116 | IMEI-only недостаточен; TLS/per-device credential либо private APN/VPN/allowlist | APPROVED; конкретный механизм DEFERRED |
@@ -67,6 +67,34 @@
 | D-133 | Offline: последняя точка временно показывается с предупреждением; максимальный срок показа | DEFERRED |
 | D-134 | Этап 2 — только локальная frontend-демонстрация; серверная защита, реальный GPS и WebSocket не заявляются | APPROVED |
 | D-135 | Нейтральные записи Демо-автобус/Демо-водитель/DEMO-TRACKER 1–3; реальные номера и персональные данные не придумываются | APPROVED |
+
+## Условное утверждение Этапа 3.1 (владелец, 14 ноября 2026 года)
+
+Статус всех семи решений: **OWNER APPROVED — CONDITIONAL**. Это утверждение архитектурного направления, а не разрешение на реализацию. Точные версии взяты из проверенного Decision Approval Package и остаются условными до runtime-проверки совместимости. Установленный Node.js не обновляется. Начало Этапа 3.1 требует отдельного разрешения владельца (D-012). Ничего из перечисленного не установлено и не запущено.
+
+| ID | Что утвердил владелец | Статус |
+|---|---|---|
+| D-102 | Backend: Node.js 24 LTS (кандидат ≥ v24.22.3), Fastify 5.x (кандидат 5.12.8), `pg` 8.x (кандидат 8.23.1) | OWNER APPROVED — CONDITIONAL |
+| D-103 | SQL-миграции через `node-pg-migrate` (кандидат 9.0.0), параметризованные запросы PostgreSQL, без ORM | OWNER APPROVED — CONDITIONAL |
+| D-104 | TypeBox, JSON Schema, генерация OpenAPI из схем; запрет неожиданных полей в изменяющих запросах | OWNER APPROVED — CONDITIONAL |
+| D-107 | Внутренние идентификаторы — UUID; для публичных API — отдельные непрозрачные идентификаторы. UUID не заменяет RBAC и проверки владения объектом | OWNER APPROVED — CONDITIONAL |
+| D-113 | npm workspaces: `apps/web`, `apps/api`, `packages/contracts`. Frontend Этапа 2 сохраняется; после перехода обязательны повторные проверки 31/31 unit/UI и 22/22 E2E | OWNER APPROVED — CONDITIONAL |
+| D-136 | Язык backend: JavaScript ESM с JSDoc | OWNER APPROVED — CONDITIONAL |
+| D-137 | Локальная БД: PostgreSQL 18 / PostGIS 3.7 в Docker, только локально, привязка к `127.0.0.1`; предварительно порт 5432; образ `postgis/postgis:18-3.7` — кандидат | OWNER APPROVED — CONDITIONAL |
+
+Обязательные проверки до реализации и блокирующие условия:
+
+| ID | Что проверить | Блокирует |
+|---|---|---|
+| D-102 | Совместимость Fastify 5.x с Node 24 (на официальной странице LTS Fastify тестирование указано для Node 20 и 22); актуальность версий на день начала; `engines` и lockfile | установку зависимостей и создание `apps/api` |
+| D-103 | Совместимость `node-pg-migrate` с `pg` 8.x (peer `pg <9`); наличие обратных миграций | создание миграций |
+| D-104 | Совместимость `typebox` (кандидат 1.4.7) и `@fastify/type-provider-typebox` (кандидат 6.3.0) с выбранным Fastify; схемы запрещают лишние поля | создание контрактов и маршрутов |
+| D-107 | Публичные ID не раскрывают внутренние UUID; тесты IDOR и владения объектом | схему данных и публичный API |
+| D-113 | Сохранение копии `apps/web/package-lock.json`; сравнение версий frontend-зависимостей; повтор lint, 31/31 unit/UI, 22/22 E2E, build, `npm audit` | переход на workspaces и создание корневого `package.json` |
+| D-136 | Конфигурация ESLint/JSDoc для `apps/api` | создание исходников `apps/api` |
+| D-137 | Свободен ли порт 5432 (на 14.11.2026 свободен, перепроверить; 5433 занят Docker Desktop); совместимость образа `18-3.7` (linux/amd64) и выбор digest; путь хранения данных; лицензия Docker Desktop; доступная оперативная память (на 14.11.2026 свободно около 0.6 ГБ из 7.2 ГБ) | запуск Docker и PostgreSQL |
+
+Ни одно другое решение (PROPOSED, DEFERRED, SUPERSEDED) настоящим не изменено. D-133 остаётся открытым.
 
 ## Recovery — обязательное решение
 

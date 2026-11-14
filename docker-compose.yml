@@ -1,0 +1,51 @@
+# BusWay KG: local development database only (D-137).
+# - bound to 127.0.0.1: not reachable from other machines;
+# - never starts automatically (restart: "no");
+# - uses only BusWay-owned names; it does not touch other projects' containers or volumes.
+name: busway-kg
+
+services:
+  db:
+    # Pinned linux/amd64 manifest: PostgreSQL 18.6 / PostGIS 3.7.0.
+    # Image upgrades require separate owner approval.
+    image: postgis/postgis@sha256:c5d1ba4292ff7b4471ff41cd515c677633797b72cdd2a7bb691cadaab91f1a1f
+    container_name: busway-postgres
+    restart: "no"
+    ports:
+      - "127.0.0.1:${BUSWAY_DB_PORT:-5432}:5432"
+    environment:
+      POSTGRES_USER: busway_admin
+      POSTGRES_PASSWORD: ${BUSWAY_DB_ADMIN_PASSWORD:?set BUSWAY_DB_ADMIN_PASSWORD in .env}
+      POSTGRES_DB: busway
+      BUSWAY_MIGRATOR_PASSWORD: ${BUSWAY_MIGRATOR_PASSWORD:?set BUSWAY_MIGRATOR_PASSWORD in .env}
+      BUSWAY_APP_PASSWORD: ${BUSWAY_APP_PASSWORD:?set BUSWAY_APP_PASSWORD in .env}
+    volumes:
+      # PostgreSQL 18 images keep data in a versioned subdirectory of /var/lib/postgresql.
+      - busway_pgdata:/var/lib/postgresql
+      # A single file is mounted so the image's own init scripts (PostGIS) are not hidden.
+      - ./infra/db/init/01-roles.sh:/docker-entrypoint-initdb.d/20-busway-roles.sh:ro
+    mem_limit: 512m
+    shm_size: 128mb
+    command:
+      - postgres
+      - -c
+      - max_connections=30
+      - -c
+      - shared_buffers=128MB
+      - -c
+      - work_mem=4MB
+      - -c
+      - maintenance_work_mem=64MB
+      - -c
+      - effective_cache_size=256MB
+      - -c
+      - log_connections=on
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U busway_admin -d busway"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+
+volumes:
+  busway_pgdata:
+    name: busway_pgdata
